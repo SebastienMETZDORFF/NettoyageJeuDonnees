@@ -1,6 +1,7 @@
 # Import des librairies dont nous avons besoin
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Lire le fichier 'operations.csv'
 data = pd.read_csv('operations.csv')
@@ -58,3 +59,22 @@ print(data.iloc[i-1:i+2, :])
 # Les soldes nous indiquent une opération de -14.39 et non de -15000.
 # Remplaçons donc la valeur aberrante par -14.39
 data.loc[data['montant'] == -15000, 'montant'] = -14.39
+
+# Diagramme en secteurs
+data['categ'].value_counts(normalize=True).plot(kind='pie')
+# Cette ligne assure que le pie chart est un cercle plutôt qu'une ellipse
+plt.axis('equal')
+plt.show()
+
+# Diagramme en tuyaux d'orgues
+data['categ'].value_counts(normalize=True).plot(kind='bar')
+plt.show()
+
+# Diagramme en bâtons
+data['quart_mois'] = [int((jour-1)*4/31)+1 for jour in data['date_operation'].dt.day]
+data['quart_mois'].value_counts(normalize=True).plot(kind='bar', width=0.1)
+plt.show()
+
+# Histogramme
+data[data.montant.abs() < 100]['montant'].hist(density=True, bins=20)
+plt.show()
