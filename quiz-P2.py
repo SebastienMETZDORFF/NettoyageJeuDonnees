@@ -1,5 +1,4 @@
 # Import des librairies Python dont nous avons besoin
-import numpy as np
 import pandas as pd
 
 # Affichage des données du fichier CSV

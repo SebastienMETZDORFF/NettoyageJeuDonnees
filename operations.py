@@ -1,5 +1,4 @@
 # Import des librairies dont nous avons besoin
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -78,3 +77,14 @@ plt.show()
 # Histogramme
 data[data.montant.abs() < 100]['montant'].hist(density=True, bins=20)
 plt.show()
+
+# Variable 'quart_mois' sous forme de tableau
+effectifs = data['quart_mois'].value_counts()
+modalites = effectifs.index # L'index de effectifs contient des modalités
+tab = pd.DataFrame(modalites, columns=['quart_mois']) # Création du tableau à partir des modalités
+tab['n'] = effectifs.values
+tab['f'] = tab['n'] / len(data) # len(data) renvoie la taille de l'échantillon
+tab = tab.sort_values('quart_mois') # Tri des valeurs de la variable X (croissant)
+tab['F'] = tab['f'].cumsum() # cumsum calcule la somme cumulée
+print('\nVoici le tableau de la variable \'quart_mois\' :')
+print(tab)
