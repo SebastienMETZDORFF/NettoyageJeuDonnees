@@ -87,7 +87,7 @@ tab['f'] = tab['n'] / len(data) # len(data) renvoie la taille de l'échantillon
 tab = tab.sort_values('quart_mois') # Tri des valeurs de la variable X (croissant)
 tab['F'] = tab['f'].cumsum() # cumsum calcule la somme cumulée
 print('\nVoici le tableau de la variable \'quart_mois\' :')
-print(tab)'''
+print(tab)
 
 # Je découvre les mesures de tendance centrale
 print('Mode :', data['montant'].mode(), '\n')
@@ -104,4 +104,31 @@ for cat in data['categ'].unique():
     print('Moyenne :', subset['montant'].mean(), '\n')
     print('Médiane :', subset['montant'].median(), '\n')
     subset['montant'].hist() # Crée l'histogramme
-    plt.show() # Affiche l'histogramme
+    plt.show() # Affiche l'histogramme'''
+
+# Je découvre les mesures de dispersion
+print('Variance empirique biaisée :', data['montant'].var(), '\n')
+print('Variance empirique sans biais :', data['montant'].var(ddof=0), '\n')
+print('Ecart-type empirique biaisée :', data['montant'].std(), '\n')
+print('Coefficient de variation :', data['montant'].std() / data['montant'].mean(), '\n')
+print('Ecart-type empirique sans biais :', data['montant'].std(ddof=0), '\n')
+
+# Boîte à moustaches
+data.boxplot(column='montant', vert=False)
+plt.show()
+
+# On reprend le code du chapitre précédent et on ajoute pour chaque catégorie : l'écart-type,
+# la variance, un histogramme et une boîte à moustaches des montants
+for cat in data['categ'].unique():
+    subset = data.loc[data['categ'] == cat, :]
+    print('-'*20)
+    print(cat)
+    print('Mode :', subset['montant'].mode(), '\n')
+    print('Moyenne :', subset['montant'].mean(), '\n')
+    print('Médiane :', subset['montant'].median(), '\n')
+    print('Variance :', subset['montant'].var(ddof=0), '\n')
+    print('Ecart-type :', subset['montant'].std(ddof=0), '\n')
+    subset['montant'].hist()
+    plt.show()
+    subset.boxplot(column='montant', vert=False)
+    plt.show()
