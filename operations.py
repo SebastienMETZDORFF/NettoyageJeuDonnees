@@ -106,7 +106,7 @@ for cat in data['categ'].unique():
     subset['montant'].hist() # Crée l'histogramme
     plt.show() # Affiche l'histogramme'''
 
-# Je découvre les mesures de dispersion
+'''# Je découvre les mesures de dispersion
 print('Variance empirique biaisée :', data['montant'].var(), '\n')
 print('Variance empirique sans biais :', data['montant'].var(ddof=0), '\n')
 print('Ecart-type empirique biaisée :', data['montant'].std(), '\n')
@@ -131,4 +131,27 @@ for cat in data['categ'].unique():
     subset['montant'].hist()
     plt.show()
     subset.boxplot(column='montant', vert=False)
+    plt.show()'''
+
+# Je découvre les mesures de forme
+# Calcul du skewness
+print('Skewness :', data['montant'].skew())
+# Calcul du kurtosis
+print('Kurtosis :', data['montant'].kurtosis())
+# Calcul du skewness empirique et du kurtosis empirique
+# pour chaque catégorie
+for cat in data['categ'].unique():
+    subset = data[data['categ'] == cat]
+    print('-'*20)
+    print(cat)
+    print('Moyenne :\n', subset['montant'].mean())
+    print('Médiane:\n', subset['montant'].median())
+    print('Mode :\n', subset['montant'].mode())
+    print('Variance :\n', subset['montant'].var(ddof=0))
+    print('Ecart-type :\n', subset['montant'].std(ddof=0))
+    print('Skewness :\n', subset['montant'].skew())
+    print('Kurtosis :\n', subset['montant'].kurtosis())
+    subset['montant'].hist()
+    plt.show()
+    subset.boxplot(column="montant", vert=False)
     plt.show()
