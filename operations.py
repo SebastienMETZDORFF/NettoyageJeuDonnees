@@ -1,6 +1,7 @@
 # Import des librairies dont nous avons besoin
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Lire le fichier 'operations.csv'
 data = pd.read_csv('operations.csv')
@@ -133,7 +134,7 @@ for cat in data['categ'].unique():
     subset.boxplot(column='montant', vert=False)
     plt.show()'''
 
-# Je découvre les mesures de forme
+'''# Je découvre les mesures de forme
 # Calcul du skewness
 print('Skewness :', data['montant'].skew())
 # Calcul du kurtosis
@@ -154,4 +155,20 @@ for cat in data['categ'].unique():
     subset['montant'].hist()
     plt.show()
     subset.boxplot(column="montant", vert=False)
-    plt.show()
+    plt.show()'''
+
+# Je découvre les mesures de concentration
+depenses = data[data['montant'] < 0]
+dep = -depenses['montant'].values
+n = len(dep)
+lorenz = np.cumsum(np.sort(dep)) / dep.sum()
+lorenz = np.append([0],lorenz) # La courbe de Lorenz commence à 0
+
+xaxis = np.linspace(0-1/n,1+1/n,n+1) #Il y a un segment de taille n pour chaque individu, plus 1 segment supplémentaire d'ordonnée 0. Le premier segment commence à 0-1/n, et le dernier termine à 1+1/n.
+plt.plot(xaxis,lorenz,drawstyle='steps-post')
+plt.show()
+
+AUC = (lorenz.sum() -lorenz[-1]/2 -lorenz[0]/2)/n # Surface sous la courbe de Lorenz. Le premier segment (lorenz[0]) est à moitié en dessous de 0, on le coupe donc en 2, on fait de même pour le dernier segment lorenz[-1] qui est à moitié au dessus de 1.
+S = 0.5 - AUC # surface entre la première bissectrice et le courbe de Lorenz
+gini = 2*S
+print('Gini :', gini)
