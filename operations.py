@@ -2,6 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as st
 
 # Lire le fichier 'operations.csv'
 data = pd.read_csv('operations.csv')
@@ -157,7 +158,7 @@ for cat in data['categ'].unique():
     subset.boxplot(column="montant", vert=False)
     plt.show()'''
 
-# Je découvre les mesures de concentration
+'''# Je découvre les mesures de concentration
 depenses = data[data['montant'] < 0]
 dep = -depenses['montant'].values
 n = len(dep)
@@ -171,4 +172,49 @@ plt.show()
 AUC = (lorenz.sum() -lorenz[-1]/2 -lorenz[0]/2)/n # Surface sous la courbe de Lorenz. Le premier segment (lorenz[0]) est à moitié en dessous de 0, on le coupe donc en 2, on fait de même pour le dernier segment lorenz[-1] qui est à moitié au dessus de 1.
 S = 0.5 - AUC # surface entre la première bissectrice et le courbe de Lorenz
 gini = 2*S
-print('Gini :', gini)
+print('Gini :', gini)'''
+
+
+# J'analyse la corrélation entre 2 variables quantitatives
+depenses = data[data.montant < 0]
+plt.plot(depenses['solde_avt_ope'], -depenses['montant'], 'o')
+plt.xlabel('solde avant opération')
+plt.ylabel('montant de dépense')
+plt.show()
+
+
+# Agréger le solde avant opération en différentes classes
+taille_classe = 500 # taille des classes pour la discrétisation
+groupes = [] # va recevoir les données agrégées à afficher
+# on calcule des tranches allant de 0 au solde maximum par paliers de taille taille_classe
+tranches = np.arange(0, max(depenses["solde_avt_ope"]), taille_classe)
+tranches += taille_classe/2 # on décale les tranches d'une demi taille de classe
+indices = np.digitize(depenses["solde_avt_ope"], tranches) # associe chaque solde à son numéro de classe
+
+for ind, tr in enumerate(tranches):  # pour chaque tranche, ind reçoit le numéro de tranche et tr la tranche en question
+    montants = -depenses.loc[indices == ind, "montant"]  # sélection des individus de la tranche ind
+    if len(montants) > 0:
+        g = {
+            'valeurs': montants,
+            'centre_classe': tr - (taille_classe / 2),
+            'taille': len(montants),
+            'quartiles': [np.percentile(montants, p) for p in [25, 50, 75]]
+        }
+        groupes.append(g)
+
+plt.figure(figsize=(10, 7))
+
+# affichage des boxplots
+plt.boxplot([g["valeurs"] for g in groupes],
+            positions=[g["centre_classe"] for g in groupes],  # abscisses des boxplots
+            showfliers=False,  # on ne prend pas en compte les outliers
+            widths=taille_classe * 0.7)  # largeur graphique des boxplots
+
+# affichage des effectifs de chaque classe
+for g in groupes:
+    plt.text(g["centre_classe"], 0, "(n={})".format(g["taille"]), horizontalalignment='center', verticalalignment='top')
+plt.show()
+
+# Calculer le coefficient de Pearson et la covariance
+print(st.pearsonr(depenses["solde_avt_ope"],-depenses["montant"])[0])
+print(np.cov(depenses["solde_avt_ope"],-depenses["montant"],ddof=0)[1,0])
