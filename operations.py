@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
+import datetime as dt
+import statsmodels.api as sm
 
 # Lire le fichier 'operations.csv'
 data = pd.read_csv('operations.csv')
@@ -175,7 +177,7 @@ gini = 2*S
 print('Gini :', gini)'''
 
 
-# J'analyse la corrélation entre 2 variables quantitatives
+'''# J'analyse la corrélation entre 2 variables quantitatives
 depenses = data[data.montant < 0]
 plt.plot(depenses['solde_avt_ope'], -depenses['montant'], 'o')
 plt.xlabel('solde avant opération')
@@ -217,4 +219,74 @@ plt.show()
 
 # Calculer le coefficient de Pearson et la covariance
 print(st.pearsonr(depenses["solde_avt_ope"],-depenses["montant"])[0])
-print(np.cov(depenses["solde_avt_ope"],-depenses["montant"],ddof=0)[1,0])
+print(np.cov(depenses["solde_avt_ope"],-depenses["montant"],ddof=0)[1,0])'''
+
+# Calcul de la variable attente
+
+# Sélection du sous-échantillon
+courses = data.loc[data.categ == 'COURSES', :]
+
+# On trie les opérations par date
+courses = courses.sort_values('date_operation')
+
+# On ramène les montants en positif
+courses['montant'] = -courses['montant']
+
+# Calcul de la variable attente
+r = []
+last_date = dt.datetime.now()
+for i,row in courses.iterrows():
+    days = (row['date_operation']-last_date).days
+    if days == 0:
+        r.append(r[-1])
+    else:
+        r.append(days)
+    last_date = row['date_operation']
+courses['attente'] = r
+courses = courses.iloc[1:,]
+
+# On regroupe les opérations qui ont été effectuées à la même date
+# (courses réalisées le même jour mais dans 2 magasins différents)
+a = courses.groupby('date_operation')['montant'].sum()
+b = courses.groupby('date_operation')['attente'].first()
+courses = pd.DataFrame({'montant':a, 'attente':b})
+
+'''# Diagramme de dispersion avec X = attente et Y = montant
+plt.plot(courses['attente'],courses['montant'],'o')
+plt.xlabel('attente')
+plt.ylabel('montant')
+plt.show()'''
+
+# Régression linéaire
+
+# Estimation de a et b
+Y = courses['montant']
+X = courses[['attente']]
+X['intercept'] = 1
+result = sm.OLS(Y, X).fit() # OLS = Ordinary Least Square (Moindres Carrés Ordinaire)
+a,b = result.params['attente'],result.params['intercept']
+
+'''# Tracé de la droite de régression linéaire
+plt.plot(courses.attente,courses.montant,'o')
+plt.plot(np.arange(15),[a*x+b for x in np.arange(15)])
+plt.xlabel('attente')
+plt.ylabel('montant')
+plt.show()'''
+
+# Régression linéaire sans les outliers
+courses = courses.loc[courses['attente'] < 15, :]
+
+Y = courses['montant']
+X = courses[['attente']]
+X['intercept'] = 1
+result = sm.OLS(Y, X).fit() # OLS = Ordinary Least Square (Moindres Carrés Ordinaire)
+a_new,b_new = result.params['attente'],result.params['intercept']
+
+print(result.params)
+
+plt.plot(courses.attente,courses.montant,'o')
+plt.plot(np.arange(15),[a_new * x + b_new for x in np.arange(15)])
+plt.plot(np.arange(15),[a*x+b for x in np.arange(15)])
+plt.xlabel('attente')
+plt.ylabel('montant')
+plt.show()
