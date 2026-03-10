@@ -5,6 +5,7 @@ import numpy as np
 import scipy.stats as st
 import datetime as dt
 import statsmodels.api as sm
+import seaborn as sns
 
 # Lire le fichier 'operations.csv'
 data = pd.read_csv('operations.csv')
@@ -296,12 +297,12 @@ plt.show()'''
 '''X = 'categ' # variable qualitative
 Y = 'montant' # variable quantitative'''
 
-# On ne garde que les dépenses
+'''# On ne garde que les dépenses
 sous_echantillon = data.loc[data['montant'] < 0, :].copy()
 # On remet les dépenses en positif
 sous_echantillon['montant'] = -sous_echantillon['montant']
 # On n'étudie pas les loyers car trop gros
-sous_echantillon = sous_echantillon.loc[sous_echantillon['categ'] != 'LOYER', :]
+sous_echantillon = sous_echantillon.loc[sous_echantillon['categ'] != 'LOYER', :]'''
 
 '''# On affiche le graphique
 
@@ -321,7 +322,7 @@ plt.show()'''
 '''X = 'categ' # variable qualitative
 Y = 'montant' # variable quantitative'''
 
-def eta_squared(x,y):
+'''def eta_squared(x,y):
     moyenne_y = y.mean()
     classes = []
     for classe in x.unique():
@@ -330,12 +331,12 @@ def eta_squared(x,y):
                         'moyenne_classe': yi_classe.mean()})
     SCT = sum([(yj-moyenne_y)**2 for yj in y])
     SCE = sum([c['ni']*(c['moyenne_classe']-moyenne_y)**2 for c in classes])
-    return SCE/SCT
+    return SCE/SCT'''
 
 '''print('eta carré = ', eta_squared(sous_echantillon[X],sous_echantillon[Y]))'''
 
 # Analyse de la corrélation entre la variable 'quart_mois' et le montant des achats
-X = 'quart_mois' # variable qualitative
+'''X = 'quart_mois' # variable qualitative
 Y = 'montant' # variable quantitative
 
 modalites = sous_echantillon[X].unique()
@@ -350,4 +351,26 @@ plt.boxplot(groupes, tick_labels=modalites, showfliers=False, medianprops=median
             vert=False, patch_artist=True, showmeans=True, meanprops=meanprops)
 plt.show()
 
-print('eta carré =', eta_squared(sous_echantillon[X],sous_echantillon[Y]))
+print('eta carré =', eta_squared(sous_echantillon[X],sous_echantillon[Y]))'''
+
+# Tableau de contingence
+
+X = 'quart_mois' # variable qualitative
+Y = 'categ' # variable qualitative
+
+cont = data[[X,Y]].pivot_table(index=X,columns=Y,aggfunc=len,margins=True,margins_name='Total')
+'''print(cont)'''
+
+# J'affiche une carte de chaleur (heatmap)
+
+tx = cont.loc[:,["Total"]]
+ty = cont.loc[["Total"],:]
+n = len(data)
+indep = tx.dot(ty) / n
+
+c = cont.fillna(0) # On remplace les valeurs nulles par 0
+measure = (c-indep)**2/indep
+xi_n = measure.sum().sum()
+table = measure/xi_n
+sns.heatmap(table.iloc[:-1,:-1],annot=c.iloc[:-1,:-1])
+plt.show()
