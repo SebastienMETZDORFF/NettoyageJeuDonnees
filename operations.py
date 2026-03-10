@@ -71,11 +71,11 @@ plt.show()
 
 # Diagramme en tuyaux d'orgues
 data['categ'].value_counts(normalize=True).plot(kind='bar')
-plt.show()
+plt.show()'''
 
 # Diagramme en bâtons
 data['quart_mois'] = [int((jour-1)*4/31)+1 for jour in data['date_operation'].dt.day]
-data['quart_mois'].value_counts(normalize=True).plot(kind='bar', width=0.1)
+'''data['quart_mois'].value_counts(normalize=True).plot(kind='bar', width=0.1)
 plt.show()
 
 # Histogramme
@@ -224,7 +224,7 @@ print(np.cov(depenses["solde_avt_ope"],-depenses["montant"],ddof=0)[1,0])'''
 # Calcul de la variable attente
 
 # Sélection du sous-échantillon
-courses = data.loc[data.categ == 'COURSES', :]
+'''courses = data.loc[data.categ == 'COURSES', :]
 
 # On trie les opérations par date
 courses = courses.sort_values('date_operation')
@@ -249,7 +249,7 @@ courses = courses.iloc[1:,]
 # (courses réalisées le même jour mais dans 2 magasins différents)
 a = courses.groupby('date_operation')['montant'].sum()
 b = courses.groupby('date_operation')['attente'].first()
-courses = pd.DataFrame({'montant':a, 'attente':b})
+courses = pd.DataFrame({'montant':a, 'attente':b})'''
 
 '''# Diagramme de dispersion avec X = attente et Y = montant
 plt.plot(courses['attente'],courses['montant'],'o')
@@ -260,11 +260,11 @@ plt.show()'''
 # Régression linéaire
 
 # Estimation de a et b
-Y = courses['montant']
+'''Y = courses['montant']
 X = courses[['attente']]
 X['intercept'] = 1
 result = sm.OLS(Y, X).fit() # OLS = Ordinary Least Square (Moindres Carrés Ordinaire)
-a,b = result.params['attente'],result.params['intercept']
+a,b = result.params['attente'],result.params['intercept']'''
 
 '''# Tracé de la droite de régression linéaire
 plt.plot(courses.attente,courses.montant,'o')
@@ -274,7 +274,7 @@ plt.ylabel('montant')
 plt.show()'''
 
 # Régression linéaire sans les outliers
-courses = courses.loc[courses['attente'] < 15, :]
+'''courses = courses.loc[courses['attente'] < 15, :]
 
 Y = courses['montant']
 X = courses[['attente']]
@@ -289,4 +289,65 @@ plt.plot(np.arange(15),[a_new * x + b_new for x in np.arange(15)])
 plt.plot(np.arange(15),[a*x+b for x in np.arange(15)])
 plt.xlabel('attente')
 plt.ylabel('montant')
+plt.show()'''
+
+# J'analyse une variable quantitative et une variable qualitative par ANOVA
+
+'''X = 'categ' # variable qualitative
+Y = 'montant' # variable quantitative'''
+
+# On ne garde que les dépenses
+sous_echantillon = data.loc[data['montant'] < 0, :].copy()
+# On remet les dépenses en positif
+sous_echantillon['montant'] = -sous_echantillon['montant']
+# On n'étudie pas les loyers car trop gros
+sous_echantillon = sous_echantillon.loc[sous_echantillon['categ'] != 'LOYER', :]
+
+'''# On affiche le graphique
+
+modalites = sous_echantillon[X].unique()
+groupes = []
+for m in modalites:
+    groupes.append(sous_echantillon[sous_echantillon[X]==m][Y])
+# Propriétés graphiques
+medianprops = {'color':'black'}
+meanprops = {'marker':'o', 'markeredgecolor':'black',
+             'markerfacecolor':'firebrick'}
+plt.boxplot(groupes, tick_labels=modalites, showfliers=False, medianprops=medianprops,
+            vert=False, patch_artist=True, showmeans=True, meanprops=meanprops)
+plt.show()'''
+
+# Calcul de eta carré
+'''X = 'categ' # variable qualitative
+Y = 'montant' # variable quantitative'''
+
+def eta_squared(x,y):
+    moyenne_y = y.mean()
+    classes = []
+    for classe in x.unique():
+        yi_classe = y[x==classe]
+        classes.append({'ni': len(yi_classe),
+                        'moyenne_classe': yi_classe.mean()})
+    SCT = sum([(yj-moyenne_y)**2 for yj in y])
+    SCE = sum([c['ni']*(c['moyenne_classe']-moyenne_y)**2 for c in classes])
+    return SCE/SCT
+
+'''print('eta carré = ', eta_squared(sous_echantillon[X],sous_echantillon[Y]))'''
+
+# Analyse de la corrélation entre la variable 'quart_mois' et le montant des achats
+X = 'quart_mois' # variable qualitative
+Y = 'montant' # variable quantitative
+
+modalites = sous_echantillon[X].unique()
+groupes = []
+for m in modalites:
+    groupes.append(sous_echantillon[sous_echantillon[X]==m][Y])
+
+medianprops = {'color':'black'}
+meanprops = {'marker':'o', 'markeredgecolor':'black',
+             'markerfacecolor':'firebrick'}
+plt.boxplot(groupes, tick_labels=modalites, showfliers=False, medianprops=medianprops,
+            vert=False, patch_artist=True, showmeans=True, meanprops=meanprops)
 plt.show()
+
+print('eta carré =', eta_squared(sous_echantillon[X],sous_echantillon[Y]))
